@@ -1,4 +1,4 @@
-project('wscr', 'c',
+project('eagleshot', 'c',
   version : '0.1.0',
   default_options : ['warning_level=3'])
 
@@ -15,7 +15,7 @@ configure_file(
 inc = include_directories('.')
 
 # Compile the executable
-executable('wscr',
-           'wscr.c',
+executable('eagleshot',
+           'eagleshot.c',
            include_directories : inc,
            install : true)

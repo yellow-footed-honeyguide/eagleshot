@@ -7,7 +7,7 @@
 int main(int argc, char *argv[]) {
     // Check if the program was called with --version
     if (argc > 1 && (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0)) {
-        printf("wscr version %s\n", VERSION);
+        printf("eagleshot version %s\n", VERSION);
         return 0;
     }
 
