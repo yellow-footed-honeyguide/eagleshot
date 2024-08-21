@@ -28,6 +28,7 @@ mkdir build && cd build
 meson ..
 ninja
 sudo ninja install
+```
 
 ## Usage
 ```
@@ -38,7 +39,7 @@ Simply run the command and select the area you want to capture.
 
 ## Options
 
-```-v, --version```: Show program's version number and exit
+-v, --version: Show program's version number and exit
 
 ## Contributing
 
@@ -54,6 +55,6 @@ This project is licensed under the MIT LICENSE - see the MIT LICENSE file for de
 - Email: s.venetsky@gmail.com
 - GitHub: [@yellow-footed-honeyguide](https://github.com/yellow-footed-honeyguide)
 
-Acknowledgments
+## Acknowledgments
 
 This project uses grim and slurp for Wayland screen capture functionality.
