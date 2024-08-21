@@ -1,20 +1,20 @@
-#define _POSIX_C_SOURCE 200809L  // Set POSIX.1-2008 standard
-#include <errno.h>               // Error number definitions
-#include <fcntl.h>               // File control options
-#include <limits.h>              // Implementation-defined constants
-#include <signal.h>              // Signal handling
-#include <stdio.h>               // Standard I/O functions
-#include <stdlib.h>              // Standard library functions
-#include <string.h>              // String handling functions
-#include <sys/stat.h>            // File status and information
-#include <sys/types.h>           // Data types used in system calls
-#include <sys/wait.h>            // Process control
-#include <time.h>                // Time and date functions
-#include <unistd.h>              // POSIX operating system API
+#define _POSIX_C_SOURCE 200809L  // Set POSIX.1-2008 standard for advanced POSIX features
+#include <errno.h>               // Include for error number definitions and handling
+#include <fcntl.h>               // File control options for file descriptor operations
+#include <limits.h>              // For system-specific constants like PATH_MAX
+#include <signal.h>              // For signal handling functions and constants
+#include <stdio.h>               // Standard I/O functions for file operations and printing
+#include <stdlib.h>              // For memory allocation, random numbers, and program control
+#include <string.h>              // For string manipulation functions
+#include <sys/stat.h>            // For file status and information functions
+#include <sys/types.h>           // For system data types used in system calls
+#include <sys/wait.h>            // For process control and waiting functions
+#include <time.h>                // For time-related functions and structures
+#include <unistd.h>              // POSIX API for system calls and constants
 
-#include "config.h"  // Custom configuration file
+#include "config.h"  // Include custom configuration file for project-specific settings
 
-// Macro for error checking
+// Macro for error checking: executes 'call', prints error if it fails, and exits
 #define CHECK(call)             \
     do {                        \
         if ((call) == -1) {     \
@@ -23,44 +23,45 @@
         }                       \
     } while (0)
 
-volatile sig_atomic_t keep_running = 1;  // Flag for main loop control
+volatile sig_atomic_t keep_running = 1;  // Flag for main loop control, volatile for thread safety
 
-// Signal handler function
+// Signal handler function to gracefully stop the main loop
 void signal_handler(int sig) {
-    keep_running = 0;  // Set flag to stop main loop
+    keep_running = 0;  // Set flag to stop main loop when signal is received
 }
 
-// Check if directory exists
+// Function to check if a directory exists at the given path
 int dir_exists(const char *path) {
     struct stat st;
-    return (stat(path, &st) == 0) && S_ISDIR(st.st_mode);
+    return (stat(path, &st) == 0) &&
+           S_ISDIR(st.st_mode);  // Check if path exists and is a directory
 }
 
-// Create directory
+// Function to create a directory with read/write/execute permissions
 void create_dir(const char *path) {
-    CHECK(mkdir(path, 0755));  // Create directory with read/write/execute permissions
+    CHECK(mkdir(path, 0755));  // Create directory, CHECK macro handles errors
 }
 
-// Get pictures directory path
+// Function to get or create the Pictures directory in the user's home folder
 char *get_pictures_dir() {
-    const char *home = getenv("HOME");  // Get home directory
+    const char *home = getenv("HOME");  // Get home directory path from environment
     if (!home) {
         fprintf(stderr, "Unable to get home directory\n");
         exit(EXIT_FAILURE);
     }
-    char *pictures_dir = malloc(PATH_MAX);  // Allocate memory for path
+    char *pictures_dir = malloc(PATH_MAX);  // Allocate memory for pictures directory path
     if (!pictures_dir) {
         perror("malloc");
         exit(EXIT_FAILURE);
     }
     snprintf(pictures_dir, PATH_MAX, "%s/Pictures", home);  // Create pictures directory path
     if (!dir_exists(pictures_dir)) {
-        create_dir(pictures_dir);  // Create directory if it doesn't exist
+        create_dir(pictures_dir);  // Create Pictures directory if it doesn't exist
     }
     return pictures_dir;
 }
 
-// Generate unique filename based on current time
+// Function to generate a unique filename based on current date and time
 char *generate_filename() {
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
@@ -73,7 +74,7 @@ char *generate_filename() {
     return filename;
 }
 
-// Execute slurp command to select screen area
+// Function to execute slurp command for selecting screen area
 int execute_slurp(char *geometry, size_t size) {
     int pipefd[2];
     if (pipe(pipefd) == -1) {
@@ -108,7 +109,7 @@ int execute_slurp(char *geometry, size_t size) {
     }
 }
 
-// Execute screenshot command
+// Function to execute screenshot command using selected area
 void execute_screenshot(const char *pictures_dir, const char *filename) {
     char geometry[256];
     if (execute_slurp(geometry, sizeof(geometry)) != 0) {
@@ -145,18 +146,18 @@ int main(int argc, char *argv[]) {
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = signal_handler;
-    sigaction(SIGINT, &sa, NULL);   // Set up signal handler for SIGINT
+    sigaction(SIGINT, &sa, NULL);   // Set up signal handler for SIGINT (Ctrl+C)
     sigaction(SIGTERM, &sa, NULL);  // Set up signal handler for SIGTERM
 
-    char *pictures_dir = get_pictures_dir();  // Get pictures directory path
-    char *filename = generate_filename();     // Generate unique filename
+    char *pictures_dir = get_pictures_dir();  // Get or create Pictures directory
+    char *filename = generate_filename();     // Generate unique filename for screenshot
 
     if (keep_running) {
-        execute_screenshot(pictures_dir, filename);  // Take screenshot
+        execute_screenshot(pictures_dir, filename);  // Take screenshot if not interrupted
     }
 
-    free(pictures_dir);  // Free allocated memory
-    free(filename);      // Free allocated memory
+    free(pictures_dir);  // Free allocated memory for pictures directory path
+    free(filename);      // Free allocated memory for filename
 
     return 0;
 }
